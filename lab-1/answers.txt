@@ -1,0 +1,20 @@
+exploit-2a.py exploits bug #5 (zookd:255)
+Buffer "reqpath" is used to store the value of the url path passed by user. Value of the buffer 'reqpath' is passed by the 'env' buffer which is of 8192 bytes. So buffer overflow might be happen and it causes the change in the variable 'fd'(file Discriptor). Alternation in the value 'fd' will create segmentation fault.
+
+exploit-2b.py exploits bug #1 (http.c:120) 
+By passing in a header field with a very long value (a bit over 512). So there is a possibility that it may overflow and overwrite the value of variable 'fd' that will drop the connection between client and server.
+
+exploit-3.py
+Buffer "reqpath" is uded to inject code into the web server. The goal of the injected code will be to unlink (remove) a sensitive file on the server, namely /home/httpd/grades.txt and shell code that used in this procedure is written in shellcode.S file. We passed compiled version of shellcode that is shellcode.bin to request URL and make the file delete from the server.
+
+
+Exercise-4:
+Return-to-libC attack has been implemented by exploit-4a and exploit-4b, where the vector control flow directly into code that existed before attack. As well as other buffer overflow vulnerabilities you found in Exercise 1 can be exploited in this same manner.
+
+
+Exercise-5:
+(1):- Maximum no of services that is being offered by server is 256, I have use python script called "hulk.py" (p.s.:easily available in the internet and 		freeware also :)) for simulating the DOS attack. The standard methods and prevention techniques are used to prevent DOS attacks.
+
+(2):- We can see the whole code of the any server ile by simply passing the file name in the URL, like "http://localhost:8080/zookd.c". Bu this method requires the file name at the server. This attack can be prevented by changging the permission for the server file using "chmod" command.
+
+

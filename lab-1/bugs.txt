@@ -1,0 +1,88 @@
+[http.c:120]
+Buffer "value" is used to store the header value of the HTTP request. The size of the buffer is only 512 bytes, while it store from the value of 'buf', so there is a possibility that it may overflow and overwrite the value of variable 'fd' that will drop the connection between client and server
+
+	char value[512];
+    	char envvar[512];
+	.
+	.
+	.
+line 159:url_decode(value, sp);
+        /* Store header in env. variable for application code */
+        /* Some special headers don't use the HTTP_ prefix. */
+        if (strcmp(buf, "CONTENT_TYPE") != 0 &&
+            strcmp(buf, "CONTENT_LENGTH") != 0) {
+            sprintf(envvar, "HTTP_%s", buf);
+            setenv(envvar, value, 1);
+        } else {
+            setenv(buf, value, 1);
+        }
+
+[http.c:121]
+Buffer "envvar" is used to store the value of header appended with "HTTP_" if it doesn't contain the value "CONTENT_TYPE" or "CONTENT_LENGHT". It also takes the value from 'buf' which is again of 8192 bytes. So there is possibility of buffer overflow.
+
+	char value[512];
+    	char envvar[512];
+	.
+	.
+	.
+line 159:url_decode(value, sp);
+        /* Store header in env. variable for application code */
+        /* Some special headers don't use the HTTP_ prefix. */
+        if (strcmp(buf, "CONTENT_TYPE") != 0 &&
+            strcmp(buf, "CONTENT_LENGTH") != 0) {
+            sprintf(envvar, "HTTP_%s", buf);
+            setenv(envvar, value, 1);
+        } else {
+            setenv(buf, value, 1);
+        }
+
+[http.c:276]
+Buffer "pn" of size 1024 bytes is used to store the directory path appended with 'name' buffer, which is of size 1024. So 'pn' can be overflowed.
+
+    	char pn[1024];
+    	struct stat st;
+
+    	getcwd(pn, sizeof(pn));
+    	setenv("DOCUMENT_ROOT", pn, 1);
+
+    	strcat(pn, name);
+    	split_path(pn);
+
+line 353:char name[1024];
+	.
+	.
+	.
+	for (i = 0; indices[i]; i++) {
+        dir_join(name, pn, indices[i]);
+        if (stat(name, &st) == 0 && S_ISREG(st.st_mode)) {
+            dir_join(name, getenv("SCRIPT_NAME"), indices[i]);
+            break;
+	        }
+        }
+
+[http.c:353]
+Buffer "name" is used to store the value of array indices and environment_variable["SCRIPT_NAME"]. Here size of environment_variable may exceed than 1024 bytes. That means, 'name' would also exceed than 1024 bytes and changes the value of variable 'fd'. That will cause buffer overlow.
+
+	char name[1024];
+	.
+	.
+	.
+	for (i = 0; indices[i]; i++) {
+        dir_join(name, pn, indices[i]);
+        if (stat(name, &st) == 0 && S_ISREG(st.st_mode)) {
+            dir_join(name, getenv("SCRIPT_NAME"), indices[i]);
+            break;
+	        }
+        }
+
+[zookd.c:65]
+Buffer "reqpath" is used to store the value of the url path passed by user. Value of the buffer 'reqpath' is passed by the 'env' buffer which is of 8192 bytes. So buffer overflow might be happen and it causes the change in the variable 'fd'(file Discriptor). Alternation in the value 'fd' will create segmentation fault.
+
+	char reqpath[2048];
+   	const char *errmsg;
+    	int i;
+
+    	/* get the request line */
+    	if ((errmsg = http_request_line(fd, reqpath, env, &env_len)))
+        	return http_err(fd, 500, "http_request_line: %s", errmsg);
+
